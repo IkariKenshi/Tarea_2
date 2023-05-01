@@ -2,7 +2,7 @@ const express = require('express');
 const Joi = require('joi')
 const ruta = express.Router();
 const estudiantes = require('./estudiantes');
-
+console.log(estudiantes.estudiantes)
 
 //_______________________________________________________________Clase
 
@@ -17,9 +17,6 @@ class evento{
         this.NombreOrador = NombreOrador,
         this.listaRe = listaRe
     }
-    detallesEvento() {
-        return `Id Evento: ${this.idE}, Titulo: ${this.titulo}, fecha: ${this.fecha}, hora: ${this.hora}, lugar: ${this.lugar}, Orador: ${this.NombreOrador}, Lista de Alumnos: \t\n${this.listaRe}`;
-    } 
 };
 
 var idEC = 3;
@@ -57,16 +54,46 @@ function validarEvento(evento) {
     return schema.validate(evento);
 }
 
-console.log(estudiantes.estudiantes)
+/* console.log(estudiantes.estudiantes) */
 
-/* function existeAlumnoLista(estudiantes, listaAlum){
-    if(estudiantes.existeEstudiante())
-} */
+function obtenerIdsNoEncontrados(estudiantes, listaAlum){
+    const noEncontrados = [];
+    for(let i = 0 ; i < listaAlum.length; i++){
+      let encontrado = false;
+      for(let j = 0 ; j < estudiantes.estudiantes.length; j++){
+        if(estudiantes.estudiantes[j].id === listaAlum[i]){
+          encontrado = true;
+          break;
+        }
+      }
+      if(!encontrado){
+        noEncontrados.push(listaAlum[i]);
+      }
+    }
+    return noEncontrados;
+  }
+
+// Función que obtiene los datos del estudiante según el id
+function obtenerEstudiantePorId(id) {
+    for (let i = 0; i < estudiantes.estudiantes.length; i++) {
+      if (estudiantes.estudiantes[i].id == id) {
+        return estudiantes.estudiantes[i];
+      }
+    }
+    return null;
+  }
+  
+  // Función que recorre la lista de ids y devuelve los datos de los estudiantes
+  function obtenerEstudiantesPorLista(listaIds) {
+    return listaIds.map((id) => obtenerEstudiantePorId(id));
+  }
+
 //_______________________________________________________________GETS
 
 ruta.get('/', (req, res) => {
     res.send(eventos)
 })
+
 
 ruta.get('/:idE', (req, res) => {
     const idE = req.params.idE;
@@ -75,15 +102,26 @@ ruta.get('/:idE', (req, res) => {
         res.status(404).send(`El evento ${idE} no se ha encontrado`)
         return;
     }
+    const estudiantesEvento = obtenerEstudiantesPorLista(evento.listaRe);
+    evento = {...evento, estudiantes: estudiantesEvento};
     res.send(evento);
     return;
-})
+  })
 
 //_______________________________________________________________POST
 
 ruta.post('/', (req, res) => {
     const { error, value } = validarEvento(req.body);
-    if (!error) {
+    if (!error) { 
+        if(existeDisponibilidad(req.body.fecha, req.body.hora, req.body.lugar)){
+            res.status(400).send(`Ya existe un evento que existe en esa fecha, hora y lugar`);
+            return;
+        }
+        const idsNoEncontrados = obtenerIdsNoEncontrados(estudiantes, req.body.listaRe);
+        if(idsNoEncontrados.length > 0){
+          res.status(404).send(`Los siguientes ids no se encontraron en la lista de estudiantes: ${idsNoEncontrados }`);
+          return;
+        }
         idEC = idEC + 1;
         const event = new evento(
             idEC,
@@ -94,10 +132,6 @@ ruta.post('/', (req, res) => {
             req.body.NombreOrador,
             req.body.listaRe
         );
-        if(existeDisponibilidad(req.body.fecha, req.body.hora, req.body.lugar)){
-            res.status(400).send(`Ya existe un evento que existe en esa fecha, hora y lugar`);
-            return;
-        }
         eventos.push(event);
         res.send(event); // Enviamos solamente el objeto idE
     } else {
@@ -119,6 +153,11 @@ ruta.put('/:idE', (req, res) => {
         if(existeDisponibilidad(req.body.fecha, req.body.hora, req.body.lugar)){
             res.status(400).send(`Ya existe un evento que existe en esa fecha, hora y lugar`);
             return;
+        }
+        const idsNoEncontrados = obtenerIdsNoEncontrados(estudiantes, req.body.listaRe);
+        if(idsNoEncontrados.length > 0){
+          res.status(404).send(`Los siguientes ids no se encontraron en la lista de estudiantes: ${idsNoEncontrados}`);
+          return;
         }
         else{
             evento.titulo = value.titulo;
@@ -152,4 +191,8 @@ ruta.delete('/:idE', (req, res) => {
 })
 
 
-module.exports = ruta; //Exporta el objeto ruta 
+const eventosObjetos = {
+    ruta,
+    eventos
+}
+module.exports = eventosObjetos; 

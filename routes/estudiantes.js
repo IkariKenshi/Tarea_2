@@ -1,7 +1,7 @@
 const express = require('express');
 const Joi = require('joi')
 const ruta = express.Router();
-
+const eventos = require('./eventos')
 
 //_______________________________________________________________Clase
 class estudiante {
@@ -11,9 +11,6 @@ class estudiante {
         this.email = email,
         this.carrera = carrera,
         this.semestre = semestre
-    }
-    descripcion() {
-        return `Id: ${this.id}, Nombre: ${this.nombre}, Email: ${this.email}, Carrera: ${this.carrera}, Semestre: ${this.semestre}`;
     }
 };
 
@@ -138,11 +135,21 @@ ruta.delete('/:id', (req, res) => {
     const index = estudiantes.indexOf(alumno);
     estudiantes.splice(index, 1);
     res.send(alumno);
+
+
+    for(let i = 0; i < eventos.eventos.length; i++){
+        for(let j = 0; j < eventos.eventos[i].listaRe.length; j++){
+            if(alumno.id === eventos.eventos[i].listaRe[j]){
+                eventos.eventos[i].listaRe.splice(j, 1);
+            }
+        }
+    }
 })
 
 const estudianteRoutes = {
     ruta,
-    estudiantes
+    estudiantes,
+    existeEstudiante
   };
   
   module.exports = estudianteRoutes;
