@@ -1,8 +1,9 @@
 const express = require('express');
-const Joi = require('joi')
+const Joi = require('joi');
 const ruta = express.Router();
 const estudiantes = require('./estudiantes');
-console.log(estudiantes.estudiantes)
+console.log(estudiantes.estudiantes);
+
 
 //_______________________________________________________________Clase
 
@@ -33,6 +34,7 @@ var eventos = [
 function existeEvento (idE){
     return (eventos.find(n => n.idE === parseInt(idE)))
 }
+
 function existeDisponibilidad(fecha, hora, lugar){
     for(let i = 0; i < eventos.length; i++){
         if(eventos[i].fecha === fecha && eventos[i].hora === hora && eventos[i].lugar === lugar){
@@ -53,8 +55,6 @@ function validarEvento(evento) {
     });
     return schema.validate(evento);
 }
-
-/* console.log(estudiantes.estudiantes) */
 
 function obtenerIdsNoEncontrados(estudiantes, listaAlum){
     const noEncontrados = [];
@@ -91,15 +91,15 @@ function obtenerEstudiantePorId(id) {
 //_______________________________________________________________GETS
 
 ruta.get('/', (req, res) => {
-    res.send(eventos)
+    res.send(eventos);
 })
 
 
 ruta.get('/:idE', (req, res) => {
     const idE = req.params.idE;
-    let evento = existeEvento(idE)
+    let evento = existeEvento(idE);
     if(!evento){
-        res.status(404).send(`El evento ${idE} no se ha encontrado`)
+        res.status(404).send(`El evento ${idE} no se ha encontrado`);
         return;
     }
     const estudiantesEvento = obtenerEstudiantesPorLista(evento.listaRe);
@@ -143,9 +143,9 @@ ruta.post('/', (req, res) => {
 //_______________________________________________________________PUT
 
 ruta.put('/:idE', (req, res) => {
-    let evento = existeEvento(req.params.idE)
+    let evento = existeEvento(req.params.idE);
     if(!evento){
-        res.status(404).send(`No se ha encontrado el evento con ID: ${evento}`)
+        res.status(404).send(`No se ha encontrado el evento con ID: ${req.params.idE}`);
         return;
     }
     const {error, value} = validarEvento(req.body);
@@ -182,17 +182,37 @@ ruta.put('/:idE', (req, res) => {
 ruta.delete('/:idE', (req, res) => {
     let evento  = existeEvento(req.params.idE);
     if(!evento){
-        res.status(404).send(`No se ha encontrado el evento con ID: ${evento}`)
+        res.status(404).send(`No se ha encontrado el evento con ID: ${req.params.idE}`)
         return;
     }
     const index = eventos.indexOf(evento);
     eventos.splice(index, 1);
-    res.send(evento)
+    res.send(evento);
 })
+
+ruta.delete('/estudiantes/:id', (req, res) => {
+    const id = req.params.id;
+    const index = estudiantes.estudiantes.findIndex(e => e.id === parseInt(id));
+    if (index === -1) {
+      return res.status(404).send('El estudiante no existe');
+    }
+    estudiantes.estudiantes.splice(index, 1);
+  
+    // Actualizar eventos
+    eventos.forEach(evento => {
+      const index = evento.listaRe.indexOf(parseInt(id));
+      if (index !== -1) {
+        evento.listaRe.splice(index, 1);
+      }
+    });
+    
+    res.send('Estudiante eliminado correctamente');
+  });
 
 
 const eventosObjetos = {
     ruta,
     eventos
-}
+};
+
 module.exports = eventosObjetos; 

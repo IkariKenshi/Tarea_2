@@ -1,7 +1,7 @@
 const express = require('express');
-const Joi = require('joi')
+const Joi = require('joi');
 const ruta = express.Router();
-const eventos = require('./eventos')
+//const eventos = require('./eventos')
 
 //_______________________________________________________________Clase
 class estudiante {
@@ -28,15 +28,16 @@ var estudiantes = [
 //_______________________________________________________________Validaciones
 
 function existeEstudiante(id) {
-    return (estudiantes.find(e => e.id === parseInt(id)))
+    return (estudiantes.find(e => e.id === parseInt(id)));
 }
+
 function existeCorreo(correo){
     for(var i = 0; i< estudiantes.length; i++){
         if(estudiantes[i].email.toLowerCase() === correo){
             return true;
         }
     }
-    return false
+    return false;
 }
 
 function validarEstudiante(alumno) {
@@ -52,19 +53,19 @@ function validarEstudiante(alumno) {
 //_______________________________________________________________GETS
 
 ruta.get('/', (req, res) => {
-    res.send(estudiantes)
+    res.send(estudiantes);
 })
 
 
 ruta.get('/:id', (req, res) => {
-    const id = req.params.id
-    let estudiante = existeEstudiante(id)
+    const id = req.params.id;
+    let estudiante = existeEstudiante(id);
     if(!estudiante)
     {
-        res.status(404).send(`El estudiante con ID: ${id} no se ha encontrado`)
+        res.status(404).send(`El estudiante con ID: ${id} no se ha encontrado`);
         return;
     }
-    res.send(estudiante)
+    res.send(estudiante);
     return;
 })
 
@@ -73,6 +74,10 @@ ruta.get('/:id', (req, res) => {
 ruta.post('/', (req, res) => {
     const {error, value} = validarEstudiante(req.body);
     if(!error){
+        if(existeCorreo(req.body.email)){
+            res.status(400).send(`El correo ${req.body.email} ya existe`);
+            return;
+        }
         ids = ids +1;
         const alumno = new estudiante(
             ids,
@@ -81,10 +86,6 @@ ruta.post('/', (req, res) => {
             req.body.carrera,
             req.body.semestre
         );
-        if(existeCorreo(alumno.email)){
-            res.status(400).send(`El correo ${alumno.email} ya existe`)
-            return;
-        }
         estudiantes.push(alumno);
         res.send(alumno);
     } else {
@@ -96,16 +97,15 @@ ruta.post('/', (req, res) => {
 //_______________________________________________________________PUT
 
 ruta.put('/:id', (req, res) => {
-    let estudiante = existeEstudiante(req.params.id)
+    let estudiante = existeEstudiante(req.params.id);
     if(!estudiante){
         res.status(404).send(`No se ha encontrado el alumno con ID: ${req.params.id}`);
         return;
     }
-    const {error, value} = validarEstudiante(req.body)
+    const {error, value} = validarEstudiante(req.body);
     if(!error){
-        //Agregar un if para saber si el campo esta lleno o no, y agregar un find para ver si el correo se repite
         if(existeCorreo(req.body.email)){
-            res.status(400).send(`El correo ${req.body.email} ya existe`)
+            res.status(400).send(`El correo ${req.body.email} ya existe`);
             return;
         }
         else{
@@ -135,21 +135,11 @@ ruta.delete('/:id', (req, res) => {
     const index = estudiantes.indexOf(alumno);
     estudiantes.splice(index, 1);
     res.send(alumno);
-
-
-    for(let i = 0; i < eventos.eventos.length; i++){
-        for(let j = 0; j < eventos.eventos[i].listaRe.length; j++){
-            if(alumno.id === eventos.eventos[i].listaRe[j]){
-                eventos.eventos[i].listaRe.splice(j, 1);
-            }
-        }
-    }
 })
 
 const estudianteRoutes = {
     ruta,
     estudiantes,
-    existeEstudiante
   };
   
   module.exports = estudianteRoutes;
