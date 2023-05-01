@@ -82,7 +82,7 @@ function obtenerEstudiantePorId(id) {
     }
     return null;
   }
-  
+
   // Función que recorre la lista de ids y devuelve los datos de los estudiantes
   function obtenerEstudiantesPorLista(listaIds) {
     return listaIds.map((id) => obtenerEstudiantePorId(id));
@@ -112,7 +112,7 @@ ruta.get('/:idE', (req, res) => {
 
 ruta.post('/', (req, res) => {
     const { error, value } = validarEvento(req.body);
-    if (!error) { 
+    if (!error) {
         if(existeDisponibilidad(req.body.fecha, req.body.hora, req.body.lugar)){
             res.status(400).send(`Ya existe un evento que existe en esa fecha, hora y lugar`);
             return;
@@ -134,9 +134,10 @@ ruta.post('/', (req, res) => {
         );
         eventos.push(event);
         res.send(event); // Enviamos solamente el objeto idE
-    } else {
-        const mensaje = error.details[0].message;
-        res.status(400).send(mensaje);
+    }
+    else {
+      const mensaje = error.details[0].message;
+      res.status(400).send(mensaje);
     }
 });
 
@@ -166,7 +167,7 @@ ruta.put('/:idE', (req, res) => {
             evento.lugar = value.lugar;
             evento.NombreOrador = value.NombreOrador;
             evento.listaRe = value.listaRe;
-    
+
             res.send(evento);
         }
     }
@@ -197,7 +198,7 @@ ruta.delete('/estudiantes/:id', (req, res) => {
       return res.status(404).send('El estudiante no existe');
     }
     estudiantes.estudiantes.splice(index, 1);
-  
+
     // Actualizar eventos
     eventos.forEach(evento => {
       const index = evento.listaRe.indexOf(parseInt(id));
@@ -205,7 +206,7 @@ ruta.delete('/estudiantes/:id', (req, res) => {
         evento.listaRe.splice(index, 1);
       }
     });
-    
+
     res.send('Estudiante eliminado correctamente');
   });
 
@@ -215,4 +216,4 @@ const eventosObjetos = {
     eventos
 };
 
-module.exports = eventosObjetos; 
+module.exports = eventosObjetos;
