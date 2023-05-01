@@ -27,10 +27,12 @@ var estudiantes = [
 
 //_______________________________________________________________Validaciones
 
+//Función que busca en estudiantes para saber si  existe el alumno
 function existeEstudiante(id) {
     return (estudiantes.find(e => e.id === parseInt(id)));
 }
 
+//Función para evitar que se repitan correos
 function existeCorreo(correo){
     for(var i = 0; i< estudiantes.length; i++){
         if(estudiantes[i].email.toLowerCase() === correo){
@@ -40,6 +42,7 @@ function existeCorreo(correo){
     return false;
 }
 
+//Función que validar mediante Joi los datos ingresados de estudiantes
 function validarEstudiante(alumno) {
     const schema = Joi.object({
         nombre: Joi.string().min(3).required(),
@@ -141,8 +144,8 @@ const estudianteRoutes = {
     ruta,
     estudiantes,
   };
-  
+
   module.exports = estudianteRoutes;
- 
+
 
 

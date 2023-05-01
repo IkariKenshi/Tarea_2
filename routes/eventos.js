@@ -31,10 +31,12 @@ var eventos = [
 
 //_______________________________________________________________Validaciones
 
+//Función que busca en eventos para saber si  existe el evento
 function existeEvento (idE){
     return (eventos.find(n => n.idE === parseInt(idE)))
 }
 
+//Función que valida si hay disponibilidad
 function existeDisponibilidad(fecha, hora, lugar){
     for(let i = 0; i < eventos.length; i++){
         if(eventos[i].fecha === fecha && eventos[i].hora === hora && eventos[i].lugar === lugar){
@@ -44,6 +46,7 @@ function existeDisponibilidad(fecha, hora, lugar){
     return false;
 }
 
+//Función que validar mediante Joi los datos ingresados de eventos
 function validarEvento(evento) {
     const schema = Joi.object({
         titulo: Joi.string().min(3).required(),
@@ -56,6 +59,7 @@ function validarEvento(evento) {
     return schema.validate(evento);
 }
 
+// Función que obtiene los id que se ingresaron y no existen
 function obtenerIdsNoEncontrados(estudiantes, listaAlum){
     const noEncontrados = [];
     for(let i = 0 ; i < listaAlum.length; i++){
